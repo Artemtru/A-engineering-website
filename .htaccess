@@ -1,0 +1,40 @@
+# Настройки сервера для хостинга reg.ru (Apache)
+AddDefaultCharset UTF-8
+Options -Indexes
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# 1. Всегда https и без www — чтобы у поисковиков была одна копия сайта
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^(.*)$ https://a-engineering.pro/$1 [R=301,L]
+
+# 2. /index.html и /uslugi/index.html -> адрес со слешем (без дублей)
+RewriteCond %{THE_REQUEST} \s/+(.*/)?index\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# 3. Адрес без конечного слеша -> со слешем, если это папка
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*[^/])$ /$1/ [R=301,L]
+
+# 4. Служебные файлы репозитория не отдаём
+RewriteRule ^(\.git|tools|supabase)(/|$) - [F,L]
+RewriteRule ^README\.md$ - [F,L]
+</IfModule>
+
+# Сжатие
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/css application/javascript text/xml application/xml image/svg+xml text/plain
+</IfModule>
+
+# Кэш в браузере: картинки и стили долго, страницы — без кэша
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/jpeg "access plus 30 days"
+ExpiresByType image/png "access plus 30 days"
+ExpiresByType image/svg+xml "access plus 30 days"
+ExpiresByType text/css "access plus 7 days"
+ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
